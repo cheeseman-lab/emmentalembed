@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+.eggs/
+
+# Virtual Environments
+venv/
+env/
+.env
+.venv
+ENV/
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Project-specific directories
+output/
+external/
+sandbox/plm/proteinbert/proteinbert
+
+# Specific model directories
+sandbox/plm/proteinbert/models/
+sandbox/plm/esm/models/
+sandbox/plm/prot_t5/models/
+
+# Output files
+**/*.out
