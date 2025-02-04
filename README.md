@@ -61,18 +61,25 @@ pip install -e .
 ```
 
 3. Set up the PLM environment (in a separate terminal):
+
+Create and activate the PLM environment:
 ```bash
-# Create and activate PLM environment
 conda create -n plm python=3.10
 conda activate plm
+```
 
-# Install PLM package and dependencies
+Run the setup script:
+```bash
 cd plm
-pip install -e .
-
-# Download and set up models
 ./setup_plm.sh
 ```
+
+This will automatically:
+- Install required packages (PyTorch, ANKH, ESM, etc.)
+- Clone necessary repositories (ProteinBERT)
+- Download model weights
+- Set up the PLM package
+
 
 ## Usage
 

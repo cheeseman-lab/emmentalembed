@@ -38,9 +38,10 @@ external/
 sandbox/plm/proteinbert/proteinbert
 
 # Specific model directories
-sandbox/plm/proteinbert/models/
-sandbox/plm/esm/models/
-sandbox/plm/prot_t5/models/
+plm/proteinbert/models/
+plm/esm/models/
+plm/prot_t5/models/
+plm/models/
 
 # Output files
 **/*.out

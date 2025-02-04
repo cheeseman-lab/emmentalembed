@@ -1,13 +1,32 @@
 #!/bin/bash
 
-# Print that the script is running:
 echo "Setting up PLM environment..."
 
-# Create and activate the conda environment
-conda env create -f plm_environment.yml
-conda activate plm
+# Ensure we're in the PLM directory
+cd "$(dirname "$0")"
 
-# Run the clone script
-python sandbox/plm/clone_git_plms.py
+# Create necessary directories
+mkdir -p external models
 
-echo "PLM environment setup complete!"
+# Install pip packages
+echo "Installing required packages..."
+pip install ankh fair-esm jax-unirep "transformers>=4.20.0" torch "tensorflow>=2.0"
+
+# Clone and setup ProteinBERT
+if [ ! -d "external/proteinbert" ]; then
+    echo "Setting up ProteinBERT..."
+    git clone https://github.com/nadavbra/protein_bert.git external/proteinbert
+    cd external/proteinbert
+    git submodule init
+    git submodule update
+    python setup.py install
+    cd ../..
+else
+    echo "ProteinBERT already installed"
+fi
+
+# Download the ESM models
+echo "Downloading ESM models..."
+python src/esm/download_models.py
+
+echo "PLM setup complete!"
