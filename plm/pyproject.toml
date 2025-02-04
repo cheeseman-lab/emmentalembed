@@ -1,0 +1,22 @@
+# plm/pyproject.toml
+[project]
+name = "emmentalembed-plm"
+version = "0.1.0"
+description = "Protein Language Model embeddings extraction"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.22,<=1.24.3",
+    "torch",
+    "pandas",
+    "biopython",
+    "ankh",
+    "fair-esm",
+    "jax-unirep",
+    "transformers>=4.20.0",
+    "tensorflow>=2.0",
+    "pathlib",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

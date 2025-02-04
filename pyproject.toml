@@ -1,0 +1,20 @@
+# pyproject.toml
+[project]
+name = "emmentalembed"
+version = "0.1.0"
+description = "Protein embedding analysis toolkit"
+requires-python = ">=3.10"
+dependencies = [
+    "pandas",
+    "numpy",
+    "matplotlib",
+    "seaborn",
+    "biopython",
+    "scikit-learn",
+    "jupyter",
+    "ipykernel",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
