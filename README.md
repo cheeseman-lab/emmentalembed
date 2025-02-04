@@ -17,112 +17,156 @@ A toolkit for extracting embeddings from various protein language models (PLMs).
 ## Project Structure
 
 ```
-├── data/                     # Data directory
-│   └── isoform/             # Isoform-specific data
-├── sandbox/                  # Main package directory
-│   ├── plm/                 # PLM implementations
-│   │   ├── ankh/           # ANKH model
-│   │   ├── esm/            # ESM models
-│   │   ├── one-hot/        # One-hot encoding
-│   │   ├── prot_t5/        # ProtT5 model
-│   │   ├── proteinbert/    # ProteinBERT
-│   │   └── unirep/         # UniRep model
-│   └── src/                 # Core utilities
-├── scripts/                  # Runtime scripts
-│   ├── evaluate/            # Evaluation scripts
-│   ├── plm/                 # SLURM job scripts
-│   └── process/             # Data processing scripts
+emmentalembed/
+├── src/
+│   └── emmentalembed/         # Main package
+│       ├── __init__.py
+│       ├── evaluate.py        # Evaluation utilities
+│       └── process.py         # Data processing
+├── plm/                       # PLM subpackage
+│   ├── src/
+│   │   └── plm/
+│   │       ├── ankh/         # ANKH model
+│   │       ├── esm/          # ESM models
+│   │       ├── one_hot/      # One-hot encoding
+│   │       ├── prot_t5/      # ProtT5 model
+│   │       ├── proteinbert/  # ProteinBERT
+│   │       └── unirep/       # UniRep model
+│   ├── scripts/              # PLM-specific scripts
+│   │   └── extract/          # Extraction scripts
+│   ├── pyproject.toml        # PLM dependencies
+│   └── setup_plm.sh         # PLM setup script
+├── scripts/                   # General scripts
+│   ├── process/
+│   └── evaluate/
+└── pyproject.toml            # Main package dependencies
 ```
 
 ## Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/cheeseman-lab/plm_sandbox.git
-cd plm_sandbox
+git clone https://github.com/cheeseman-lab/emmentalembed.git
+cd emmentalembed
 ```
 
-2. Set up the embedding analysis environment:
+2. Set up the main environment for embedding analysis:
 ```bash
-conda env create -f environment.yml
+# Create and activate main environment
+conda create -n emmentalembed python=3.10
 conda activate emmentalembed
+
+# Install main package in development mode
 pip install -e .
 ```
 
-3. Set up the PLM environment and download models:
+3. Set up the PLM environment (in a separate terminal):
 ```bash
-conda env create -f plm_environment.yml
+# Create and activate PLM environment
+conda create -n plm python=3.10
 conda activate plm
+
+# Install PLM package and dependencies
+cd plm
+pip install -e .
+
+# Download and set up models
 ./setup_plm.sh
 ```
 
 ## Usage
 
-### Processing Data
+### Processing Sequences
 
-Convert your protein sequences into the required format. For isoforms (example), we use the following approach:
+Convert your protein sequences to the required format:
 
 ```python
-from sandbox.src.process import process_isoform_data
+from emmentalembed.process import process_isoform_data
 
 process_isoform_data(
-    input_file='data/isoform/isoform_localization.csv',
-    output_label_file='output/isoform/process/isoform_labels.csv',
-    output_fasta_file='output/isoform/process/isoform_sequences.fasta'
+    input_file='data/examples/isoforms.csv',
+    output_label_file='results/labels.csv',
+    output_fasta_file='results/sequences.fasta'
 )
 ```
 
-You can add further functions to the process file for other types of proteins you'd like to process.
-
 ### Generating Embeddings
 
-Each PLM has a standardized interface. Basic usage:
+Each PLM has a standardized interface:
 
 ```bash
-python sandbox/plm/<model>/extract.py -i input.fasta -o output.csv [additional_options]
-```
+# Activate PLM environment first
+conda activate plm
 
-Model-specific examples:
+# Basic usage
+python -m plm.<model>.extract -i input.fasta -o output.csv [options]
 
-```bash
+# Model-specific examples:
+
 # ANKH
-python sandbox/plm/ankh/extract.py -i input.fasta -o output.csv --model large
+python -m plm.ankh.extract -i input.fasta -o output.csv --model large
 
 # ESM-2
-python sandbox/plm/esm/extract.py esm2_t48_15B_UR50D input.fasta output_dir \
+python -m plm.esm.extract esm2_t48_15B_UR50D input.fasta output_dir \
     --include mean --concatenate_dir results/
 
 # ProtT5
-python sandbox/plm/prot_t5/extract.py -i input.fasta -o output.csv --per_protein 1
+python -m plm.prot_t5.extract -i input.fasta -o output.csv --per_protein 1
 
 # One-hot encoding
-python sandbox/plm/one-hot/extract.py input.fasta --method one_hot --results_path results/
+python -m plm.one_hot.extract input.fasta --method one_hot --results_path results/
 ```
 
-### SLURM Scripts
+### SLURM Integration
 
-For HPC environments, use the provided SLURM scripts in `scripts/plm/`:
+For HPC environments, use the provided SLURM scripts:
 
 ```bash
-sbatch scripts/plm/<model>.sh
+# Submit specific model job
+sbatch plm/scripts/extract/<model>.sh
+
+# Or submit all models
+for script in plm/scripts/extract/*.sh; do
+    sbatch $script
+done
 ```
 
-### Evaluating Embeddings
+### Analyzing Embeddings
 
-As an example, we evaluate the similarities between pairs of embeddings in `evaluate/evaluate_isoforms.ipynb`.
+```python
+# Activate main environment
+conda activate emmentalembed
+
+# Import analysis tools
+from emmentalembed.evaluate import compare_embeddings
+
+# Load and analyze embeddings
+results = compare_embeddings(
+    'results/embeddings/*.csv',
+    labels='results/labels.csv'
+)
+```
 
 ## Development
 
-### Environment Management
+The project uses two separate environments to keep dependencies clean:
 
-The project uses two conda environments:
+1. `emmentalembed`: For embedding analysis and processing
+   - Lighter dependencies (pandas, numpy, scikit-learn)
+   - Used for data processing and evaluation
 
-1. `emmentalembed`: For analysis and processing of embeddings
-2. `plm`: For running protein language models and generating embeddings
+2. `plm`: For running protein language models
+   - Heavier dependencies (torch, tensorflow)
+   - Used for generating embeddings from sequences
 
-### Package Structure
+### Contributing
 
-Main components:
-- `sandbox.plm`: PLM implementations and extraction scripts
-- `sandbox.src`: Core utilities for data processing
-- `scripts`: Runtime and submission scripts
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests: `pytest tests/`
+5. Submit a pull request
+
+## License
+
+MIT License. See [LICENSE](LICENSE.txt) for details.

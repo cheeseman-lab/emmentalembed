@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
@@ -12,6 +13,10 @@ def process_isoform_data(input_file, output_label_file, output_fasta_file):
         output_label_file (str): Path to save the label CSV file
         output_fasta_file (str): Path to save the FASTA file
     """
+    # Make output directory if it doesn't exist
+    os.makedirs(os.path.dirname(output_fasta_file), exist_ok=True)
+    os.makedirs(os.path.dirname(output_label_file), exist_ok=True)
+
     # Read the input CSV file
     df = pd.read_csv(input_file)
     
