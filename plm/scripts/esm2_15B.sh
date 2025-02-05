@@ -5,7 +5,7 @@
 #SBATCH --job-name=esm2_15B
 #SBATCH -n 1 
 #SBATCH -N 1   
-#SBATCH --partition=nvidia-2080ti-20
+#SBATCH --partition=nvidia-A100-20
 #SBATCH --gres=gpu:1                  
 #SBATCH --cpus-per-task=1  
 #SBATCH --mem=100gb  

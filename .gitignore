@@ -35,13 +35,11 @@ ENV/
 # Project-specific directories
 output/
 external/
-sandbox/plm/proteinbert/proteinbert
+data/isoform/
 
 # Specific model directories
-plm/proteinbert/models/
-plm/esm/models/
-plm/prot_t5/models/
 plm/models/
+plm/src/*/models/
 
 # Output files
 **/*.out

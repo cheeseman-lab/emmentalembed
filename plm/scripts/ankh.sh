@@ -1,6 +1,4 @@
 #!/bin/bash
-# Configuration values for SLURM job submission.
-# One leading hash ahead of the word SBATCH is not a comment, but two are.
 #SBATCH --time=2:00:00 
 #SBATCH --job-name=ankh
 #SBATCH -n 1 
@@ -14,19 +12,23 @@
 source ~/.bashrc
 conda activate plm
 
-cd /lab/barcheese01/mdiberna/plm_sandbox/
+# Get absolute path to project root
+PROJECT_ROOT="/lab/barcheese01/mdiberna/emmentalembed"  # Change this to the root of your project
+PLM_DIR="${PROJECT_ROOT}/plm"
+
+# Create output directory with proper permissions
+mkdir -p "${PROJECT_ROOT}/output/isoform/ankh"
 
 study_names=("isoform_sequences")
-
-fasta_path="output/isoform/process/"
-results_path="output/isoform/ankh/"
+fasta_path="${PROJECT_ROOT}/output/isoform/process"
+results_path="${PROJECT_ROOT}/output/isoform/ankh"
 model_names=("base" "large")
 
-mkdir -p ${results_path}
+cd ${PLM_DIR}
 
 for model_name in "${model_names[@]}"; do
   for study in "${study_names[@]}"; do
-    command="python sandbox/plm/ankh/extract.py --input ${fasta_path}${study}.fasta --output ${results_path}${study}_ankh_${model_name}.csv --model ${model_name}"
+    command="python src/ankh/extract.py --input ${fasta_path}/${study}.fasta --output ${results_path}/${study}_ankh_${model_name}.csv --model ${model_name}"
     echo "Running command: ${command}"
     eval "${command}"
   done

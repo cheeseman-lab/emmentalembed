@@ -10,7 +10,7 @@ mkdir -p external models
 
 # Install pip packages
 echo "Installing required packages..."
-pip install ankh fair-esm jax-unirep "transformers>=4.20.0" torch "tensorflow>=2.0"
+pip install ankh fair-esm jax-unirep "transformers>=4.20.0" torch==2.5.0 "tensorflow>=2.0" tf-keras
 
 # Clone and setup ProteinBERT
 if [ ! -d "external/proteinbert" ]; then
