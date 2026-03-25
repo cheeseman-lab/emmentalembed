@@ -55,7 +55,7 @@ def main():
     }
     
     # Set output directory
-    base_output_dir = "models"  # You can change this to your preferred directory
+    base_output_dir = "src/esm/models"  
     os.makedirs(base_output_dir, exist_ok=True)
     
     # Download each group of models

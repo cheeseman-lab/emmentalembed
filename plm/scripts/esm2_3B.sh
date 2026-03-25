@@ -23,7 +23,7 @@ results_path="${PROJECT_ROOT}/output/isoform/esm"
 models=("esm2_t36_3B_UR50D")
 
 for model in "${models[@]}"; do
-    model_names+=("${PLM_DIR}/models/${model}.pt")
+    model_names+=("${PLM_DIR}/src/esm/models/${model}.pt")
 done
 
 repr_layers=36

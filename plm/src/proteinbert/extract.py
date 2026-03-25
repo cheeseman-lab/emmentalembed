@@ -5,18 +5,21 @@ import torch
 import pandas as pd
 import os
 import sys
-from Bio import SeqIO
 
+# Modify the path to correctly find the ProteinBERT module
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, "../../.."))
-sys.path.append(project_root)
+plm_dir = os.path.abspath(os.path.join(current_dir, "../.."))
+external_dir = os.path.join(plm_dir, "external")
+sys.path.append(external_dir)
+
+from proteinbert.existing_model_loading import load_pretrained_model
+from proteinbert.conv_and_global_attention_model import get_model_with_hidden_layers_as_outputs
+
+from Bio import SeqIO
 
 # Create a models directory next to extract.py
 model_path = os.path.join(current_dir, "models")
 os.makedirs(model_path, exist_ok=True)
-
-from external.proteinbert.proteinbert.existing_model_loading import load_pretrained_model
-from external.proteinbert.proteinbert.conv_and_global_attention_model import get_model_with_hidden_layers_as_outputs
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")

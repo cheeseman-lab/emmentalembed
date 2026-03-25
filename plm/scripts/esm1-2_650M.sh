@@ -29,7 +29,7 @@ models=("esm1b_t33_650M_UR50S" "esm1v_t33_650M_UR90S_1")
 
 model_names=()  # Initialize empty array
 for model in "${models[@]}"; do
-    model_names+=("${PLM_DIR}/models/${model}.pt")
+    model_names+=("${PLM_DIR}/src/esm/models/${model}.pt")
 done
 
 repr_layers=33
@@ -49,7 +49,7 @@ study_names=("isoform_sequences")
 models=("esm2_t33_650M_UR50D")
 
 for model in "${models[@]}"; do
-    model_names+=("${PLM_DIR}/models/${model}.pt")
+    model_names+=("${PLM_DIR}/src/esm/models/${model}.pt")
 done
 
 for model_name in "${model_names[@]}"; do
