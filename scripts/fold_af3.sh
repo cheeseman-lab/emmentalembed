@@ -21,8 +21,7 @@
 set -euo pipefail
 
 # Use project-local caches (avoid filling home directory)
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+PROJECT_ROOT="${SLURM_SUBMIT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 export HF_HOME="${PROJECT_ROOT}/.cache/huggingface"
 
 FASTA="${FASTA:-input.fasta}"

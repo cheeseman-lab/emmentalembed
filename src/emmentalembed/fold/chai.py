@@ -80,15 +80,15 @@ def fold_chai(config: FoldConfig) -> FoldResult:
             continue
 
         try:
-            # Chai-1 expects a FASTA-like input; write a temporary single-sequence file
+            # Chai-1 expects FASTA headers in >entity_type|name=label format
             tmp_fasta = output_dir / f".tmp_{seq_id}.fasta"
-            tmp_fasta.write_text(f">{seq_id}\n{sequence}\n")
+            tmp_fasta.write_text(f">protein|name={seq_id}\n{sequence}\n")
 
             output = run_inference(
                 fasta_file=tmp_fasta,
                 output_dir=output_dir / seq_id,
                 num_trunk_recycles=config.num_recycles,
-                device=torch.device(config.device),
+                device=config.device,
                 use_esm_embeddings=config.use_esm_embeddings,
             )
 

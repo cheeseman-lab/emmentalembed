@@ -10,14 +10,7 @@ Instructions for Claude Code when working in this repository.
 
 ```bash
 eval "$(conda shell.bash hook)" && conda activate emmentalembed
-uv pip install -e ".[dev]"        # base + tests
-uv pip install -e ".[plm]"        # + torch/transformers for embedding
-```
-
-**Folding environments** are separate (dependency conflicts):
-```bash
-bash scripts/setup_fold_env.sh chai   # Chai-1
-bash scripts/setup_fold_env.sh af3    # AlphaFold3 (weights required)
+uv pip install -e ".[dev]"        # includes embeddings, folding, and test deps
 ```
 
 ## Code Structure
@@ -38,8 +31,7 @@ emmentalembed/
 ├── scripts/
 │   ├── embed.sh            # SLURM: embedding extraction
 │   ├── fold_chai.sh        # SLURM: Chai-1 on A100
-│   ├── fold_af3.sh         # SLURM: AF3 on A100
-│   └── setup_fold_env.sh   # Creates fold conda envs
+│   └── fold_af3.sh         # SLURM: AF3 on A100
 └── tests/
     ├── test_install.py     # Smoke: import, version, CLI, deps
     └── test_config.py      # Config roundtrip, defaults
@@ -48,7 +40,7 @@ emmentalembed/
 ## CLI Commands
 
 ```bash
-emmentalembed embed --fasta input.fasta --model facebook/esm2_t33_650M_UR50D --output emb.csv
+emmentalembed embed --fasta input.fasta --model facebook/esm2_t33_650M_UR50D --output emb.parquet
 emmentalembed fold --fasta input.fasta --method chai --output-dir pdb/
 emmentalembed version
 ```
@@ -60,8 +52,8 @@ Any HuggingFace-compatible protein model: ESM-2 (650M/3B/15B), ESM-C, AMPLIFY, P
 ## Key Design Decisions
 
 1. **Unified extraction**: Single `extract_embeddings()` handles all HF models with auto-detection of quirks
-2. **Separate fold envs**: Chai-1 and AF3 have conflicting deps, each gets its own conda env
-3. **AF3 weights not bundled**: Users must download their own (not redistributable)
+2. **Single environment**: All deps (PLM, Chai-1) in one conda env
+3. **AF3 weights not bundled**: Users must download their own (not redistributable); AF3 inference not yet implemented
 4. **Chai-1 ESM mode**: Default — avoids MSA generation, nearly AF3 quality
 5. **No ESMFold**: Found to be buggy, removed in favor of Chai-1/AF3
 

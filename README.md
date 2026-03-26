@@ -17,14 +17,14 @@ cd emmentalembed
 
 conda create -n emmentalembed -c conda-forge python=3.11 uv pip -y
 conda activate emmentalembed
-uv pip install -e ".[plm,dev]"
+uv pip install -e ".[dev]"   # includes embeddings, folding, and test deps
 ```
 
 ### 2. Extract embeddings
 
 ```bash
 # Interactive
-emmentalembed embed --fasta proteins.fasta --model facebook/esm2_t33_650M_UR50D --output emb.csv
+emmentalembed embed --fasta proteins.fasta --model facebook/esm2_t33_650M_UR50D --output emb.parquet
 
 # SLURM batch job
 sbatch scripts/embed.sh
@@ -33,12 +33,8 @@ sbatch scripts/embed.sh
 ### 3. Predict structures (optional)
 
 ```bash
-# Set up Chai-1 environment (one-time, run on GPU node)
-srun --partition=nvidia-A100-20 --gres=gpu:1 --mem=64G --time=1:00:00 \
-    bash scripts/setup_fold_env.sh chai
-
-# Run folding
-conda activate emmentalembed-chai
+# Chai-1 folding (runs in the main env)
+conda activate emmentalembed
 emmentalembed fold --fasta proteins.fasta --method chai --output-dir pdb/
 ```
 
@@ -56,7 +52,7 @@ emmentalembed version   # Show versions (package, torch, CUDA)
 emmentalembed embed \
     --fasta input.fasta \
     --model facebook/esm2_t33_650M_UR50D \
-    --output embeddings.csv \
+    --output embeddings.parquet \
     --batch-size 32 \
     --dtype float16 \
     --layer -1 \
@@ -74,8 +70,8 @@ emmentalembed embed --config embed_config.yaml
 # Chai-1 (recommended — ESM mode, no MSAs needed)
 emmentalembed fold --fasta input.fasta --method chai --output-dir pdb/
 
-# AlphaFold3 (gold standard, requires downloaded weights)
-emmentalembed fold --fasta input.fasta --method af3 --weights /path/to/af3.bin --output-dir pdb/
+# AlphaFold3 (not yet functional — use Chai-1 instead)
+# emmentalembed fold --fasta input.fasta --method af3 --weights /path/to/af3.bin --output-dir pdb/
 ```
 
 ## Supported Models
@@ -90,7 +86,8 @@ Any HuggingFace-compatible protein language model works out of the box:
 | ProtT5 XL | `Rostlab/prot_t5_xl_half_uniref50-enc` | 3B | A6000 |
 | ANKH Large | `ElnaggarLab/ankh-large` | 1.5B | A6000 |
 | AMPLIFY 350M | `chandar-lab/AMPLIFY_350M` | 350M | A6000 |
-| ESM-C 300M | `EvolutionaryScale/esmc-300m-2024-12` | 300M | A6000 |
+| ESM-C 300M | `esmc_300m` | 300M | A6000 |
+| ProtBERT | `Rostlab/prot_bert` | ~420M | A6000 |
 
 ## SLURM Scripts
 
@@ -110,13 +107,15 @@ WEIGHTS_PATH=/path/to/af3.bin sbatch scripts/fold_af3.sh
 
 ## Environment Setup
 
-| Environment | Purpose | Install |
-|-------------|---------|---------|
-| `emmentalembed` | Base + PLM embeddings | `uv pip install -e ".[plm]"` |
-| `emmentalembed-chai` | Chai-1 folding | `bash scripts/setup_fold_env.sh chai` |
-| `emmentalembed-af3` | AlphaFold3 folding | `bash scripts/setup_fold_env.sh af3` |
+```bash
+conda create -n emmentalembed -c conda-forge python=3.11 uv pip -y
+conda activate emmentalembed
+uv pip install -e ".[dev]"   # includes embeddings, folding, and test deps
+```
 
 ### AlphaFold3 weights
+
+> **Note:** AF3 inference is not yet functional. The wrapper exists but the inference loop is pending implementation. Chai-1 is the recommended folding method.
 
 AF3 weights are not redistributable. To obtain them:
 
@@ -137,7 +136,7 @@ zstd -d weights/af3.bin.zst -o weights/af3.bin
 ```yaml
 embed:
   fasta_path: proteins.fasta
-  output_path: embeddings.csv
+  output_path: embeddings.parquet
   model: facebook/esm2_t33_650M_UR50D
   batch_size: 32
   dtype: float16
