@@ -1,178 +1,160 @@
 # EmmentalEmbed
 
-A toolkit for extracting embeddings from various protein language models (PLMs). This repository provides standardized interfaces for generating embeddings from protein sequences using different PLM architectures.
+Protein embedding extraction and structure prediction at scale on the Whitehead HPC.
 
-## Supported Models
+## What it does
 
-- **ANKH**: Large and Base models
-- **ESM**: 
-  - ESM-2 (15B, 3B, 650M parameters)
-  - ESM-1b (650M parameters)
-  - ESM-1v (650M parameters)
-- **ProtT5**: XL-U50 
-- **ProteinBERT**: Base model
-- **UniRep**: Original implementation
-- **One-hot encoding**: Basic sequence encoding
+1. **PLM Embeddings**: Extract embeddings from any HuggingFace protein language model (ESM-2, ProtT5, ANKH, AMPLIFY, ESM-C, etc.)
+2. **Structure Prediction**: Predict 3D structures using Chai-1 (ESM mode) or AlphaFold3
 
-## Project Structure
+## Quick Start
 
-```
-emmentalembed/
-├── src/
-│   └── emmentalembed/         # Main package
-│       ├── __init__.py
-│       ├── evaluate.py        # Evaluation utilities
-│       └── process.py         # Data processing
-├── plm/                       # PLM subpackage
-│   ├── src/
-│   │   └── plm/
-│   │       ├── ankh/         # ANKH model
-│   │       ├── esm/          # ESM models
-│   │       ├── one_hot/      # One-hot encoding
-│   │       ├── prot_t5/      # ProtT5 model
-│   │       ├── proteinbert/  # ProteinBERT
-│   │       └── unirep/       # UniRep model
-│   ├── scripts/              # PLM-specific scripts
-│   │   └── extract/          # Extraction scripts
-│   ├── pyproject.toml        # PLM dependencies
-│   └── setup_plm.sh         # PLM setup script
-├── scripts/                   # General scripts
-│   ├── process/
-│   └── evaluate/
-└── pyproject.toml            # Main package dependencies
-```
+### 1. Clone & install
 
-## Installation
-
-1. Clone the repository:
 ```bash
 git clone https://github.com/cheeseman-lab/emmentalembed.git
 cd emmentalembed
-```
 
-2. Set up the main environment for embedding analysis:
-```bash
-# Create and activate main environment
-conda create -n emmentalembed python=3.10
+conda create -n emmentalembed -c conda-forge python=3.11 uv pip -y
 conda activate emmentalembed
-
-# Install main package in development mode
-pip install -e .
+uv pip install -e ".[plm,dev]"
 ```
 
-3. Set up the PLM environment (in a separate terminal):
-
-Create and activate the PLM environment:
-```bash
-conda create -n plm python=3.10
-conda activate plm
-```
-
-Run the setup script:
-```bash
-cd plm
-./setup_plm.sh
-```
-
-This will automatically:
-- Install required packages (PyTorch, ANKH, ESM, etc.)
-- Clone necessary repositories (ProteinBERT)
-- Download model weights
-- Set up the PLM package
-
-
-## Usage
-
-### Processing Sequences
-
-Convert your protein sequences to the required format:
-
-```python
-from emmentalembed.process import process_isoform_data
-
-process_isoform_data(
-    input_file='data/examples/isoforms.csv',
-    output_label_file='results/labels.csv',
-    output_fasta_file='results/sequences.fasta'
-)
-```
-
-### Generating Embeddings
-
-Each PLM has a standardized interface:
+### 2. Extract embeddings
 
 ```bash
-# Activate PLM environment first
-conda activate plm
+# Interactive
+emmentalembed embed --fasta proteins.fasta --model facebook/esm2_t33_650M_UR50D --output emb.csv
 
-# Basic usage
-python -m plm.<model>.extract -i input.fasta -o output.csv [options]
-
-# Model-specific examples:
-
-# ANKH
-python -m plm.ankh.extract -i input.fasta -o output.csv --model large
-
-# ESM-2
-python -m plm.esm.extract esm2_t48_15B_UR50D input.fasta output_dir \
-    --include mean --concatenate_dir results/
-
-# ProtT5
-python -m plm.prot_t5.extract -i input.fasta -o output.csv --per_protein 1
-
-# One-hot encoding
-python -m plm.one_hot.extract input.fasta --method one_hot --results_path results/
+# SLURM batch job
+sbatch scripts/embed.sh
 ```
 
-### SLURM Integration
-
-For HPC environments, use the provided SLURM scripts:
+### 3. Predict structures (optional)
 
 ```bash
-# Submit specific model job
-sbatch plm/scripts/extract/<model>.sh
+# Set up Chai-1 environment (one-time, run on GPU node)
+srun --partition=nvidia-A100-20 --gres=gpu:1 --mem=64G --time=1:00:00 \
+    bash scripts/setup_fold_env.sh chai
 
-# Or submit all models
-for script in plm/scripts/extract/*.sh; do
-    sbatch $script
-done
+# Run folding
+conda activate emmentalembed-chai
+emmentalembed fold --fasta proteins.fasta --method chai --output-dir pdb/
 ```
 
-### Analyzing Embeddings
+## CLI Reference
 
-```python
-# Activate main environment
+```bash
+emmentalembed embed     # Extract PLM embeddings
+emmentalembed fold      # Predict structures (Chai-1 or AF3)
+emmentalembed version   # Show versions (package, torch, CUDA)
+```
+
+### Embedding extraction
+
+```bash
+emmentalembed embed \
+    --fasta input.fasta \
+    --model facebook/esm2_t33_650M_UR50D \
+    --output embeddings.csv \
+    --batch-size 32 \
+    --dtype float16 \
+    --layer -1 \
+    --representation mean
+```
+
+Or use a YAML config:
+```bash
+emmentalembed embed --config embed_config.yaml
+```
+
+### Structure prediction
+
+```bash
+# Chai-1 (recommended — ESM mode, no MSAs needed)
+emmentalembed fold --fasta input.fasta --method chai --output-dir pdb/
+
+# AlphaFold3 (gold standard, requires downloaded weights)
+emmentalembed fold --fasta input.fasta --method af3 --weights /path/to/af3.bin --output-dir pdb/
+```
+
+## Supported Models
+
+Any HuggingFace-compatible protein language model works out of the box:
+
+| Model | HuggingFace ID | Params | GPU |
+|-------|---------------|--------|-----|
+| ESM-2 650M | `facebook/esm2_t33_650M_UR50D` | 650M | A6000 |
+| ESM-2 3B | `facebook/esm2_t36_3B_UR50D` | 3B | A6000 |
+| ESM-2 15B | `facebook/esm2_t48_15B_UR50D` | 15B | A100 |
+| ProtT5 XL | `Rostlab/prot_t5_xl_half_uniref50-enc` | 3B | A6000 |
+| ANKH Large | `ElnaggarLab/ankh-large` | 1.5B | A6000 |
+| AMPLIFY 350M | `chandar-lab/AMPLIFY_350M` | 350M | A6000 |
+| ESM-C 300M | `EvolutionaryScale/esmc-300m-2024-12` | 300M | A6000 |
+
+## SLURM Scripts
+
+```bash
+# Embedding extraction (default: ESM-2 650M on A6000)
+sbatch scripts/embed.sh
+
+# Override model/input
+MODEL=facebook/esm2_t48_15B_UR50D FASTA=my_seqs.fasta sbatch scripts/embed.sh
+
+# Chai-1 folding on A100
+sbatch scripts/fold_chai.sh
+
+# AF3 folding (weights required)
+WEIGHTS_PATH=/path/to/af3.bin sbatch scripts/fold_af3.sh
+```
+
+## Environment Setup
+
+| Environment | Purpose | Install |
+|-------------|---------|---------|
+| `emmentalembed` | Base + PLM embeddings | `uv pip install -e ".[plm]"` |
+| `emmentalembed-chai` | Chai-1 folding | `bash scripts/setup_fold_env.sh chai` |
+| `emmentalembed-af3` | AlphaFold3 folding | `bash scripts/setup_fold_env.sh af3` |
+
+### AlphaFold3 weights
+
+AF3 weights are not redistributable. To obtain them:
+
+1. Request access via the [AlphaFold3 model parameters form](https://forms.gle/svvpY4u2jsHEwWYS6)
+2. Download the weights file (`af3.bin.zst`)
+3. Place it in the `weights/` directory (or any path you specify via `--weights`)
+
+```bash
+mkdir -p weights
+# After downloading:
+mv ~/Downloads/af3.bin.zst weights/
+# Decompress if needed:
+zstd -d weights/af3.bin.zst -o weights/af3.bin
+```
+
+## YAML Config
+
+```yaml
+embed:
+  fasta_path: proteins.fasta
+  output_path: embeddings.csv
+  model: facebook/esm2_t33_650M_UR50D
+  batch_size: 32
+  dtype: float16
+
+fold:
+  fasta_path: proteins.fasta
+  output_dir: pdb_output
+  method: chai
+  use_esm_embeddings: true
+```
+
+## Running Tests
+
+```bash
 conda activate emmentalembed
-
-# Import analysis tools
-from emmentalembed.evaluate import compare_embeddings
-
-# Load and analyze embeddings
-results = compare_embeddings(
-    'results/embeddings/*.csv',
-    labels='results/labels.csv'
-)
+python -m pytest tests/ -v
 ```
-
-## Development
-
-The project uses two separate environments to keep dependencies clean:
-
-1. `emmentalembed`: For embedding analysis and processing
-   - Lighter dependencies (pandas, numpy, scikit-learn)
-   - Used for data processing and evaluation
-
-2. `plm`: For running protein language models
-   - Heavier dependencies (torch, tensorflow)
-   - Used for generating embeddings from sequences
-
-### Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests: `pytest tests/`
-5. Submit a pull request
 
 ## License
 

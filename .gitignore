@@ -32,14 +32,23 @@ ENV/
 .LSOverride
 ._*
 
-# Project-specific directories
+# Project-specific
 output/
 external/
-data/isoform/
+data/*
+!data/example.csv
+!data/example.fasta
 
-# Specific model directories
-plm/models/
-plm/src/*/models/
+# Model weights (must be downloaded by user)
+weights/
+*.bin.zst
+*.bin
+*.pt
+*.safetensors
 
-# Output files
+# Local caches (HuggingFace, uv, torch)
+.cache/
+
+# SLURM output
 **/*.out
+**/*.err
