@@ -6,6 +6,8 @@ Instructions for Claude Code when working in this repository.
 
 **EmmentalEmbed** v0.1.0 — Protein embedding extraction and structure prediction at scale. Extracts embeddings from any HuggingFace-compatible protein language model, and predicts structures using Chai-1 or Boltz-2.
 
+Part of the **fry-python-tools** ecosystem — single-purpose GPU tools for the Whitehead HPC. See also: [goudacell](https://github.com/cheeseman-lab/goudacell) (cell segmentation).
+
 ## Development
 
 ```bash

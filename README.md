@@ -7,6 +7,21 @@ Protein embedding extraction and structure prediction at scale on the Whitehead 
 1. **PLM Embeddings**: Extract embeddings from any HuggingFace protein language model (ESM-2, ProtT5, ANKH, AMPLIFY, ESM-C, etc.)
 2. **Structure Prediction**: Predict 3D structures using Chai-1 or Boltz-2
 
+EmmentalEmbed is a **single-shot tool** — run it once on your sequences to produce embeddings or structures, then use the outputs in your downstream analysis. Part of the [fry-python-tools](https://github.com/cheeseman-lab) ecosystem (see also: [goudacell](https://github.com/cheeseman-lab/goudacell) for cell segmentation).
+
+### What to do with the outputs
+
+**Embeddings** (parquet files, one row per protein):
+- Variant effect prediction — train classifiers on embeddings to predict mutation impacts ([Marquet et al. 2021](https://doi.org/10.1007/s00439-021-02411-y))
+- Protein function annotation — cluster or classify proteins by learned representations ([survey](https://onlinelibrary.wiley.com/doi/full/10.1002/qub2.70013))
+- Fitness landscape modeling — use as features for regression on experimental fitness data ([Schmirler et al. 2025](https://doi.org/10.1038/s41598-025-05674-x))
+- Dimensionality reduction — UMAP/PCA on embedding space to visualize protein families
+
+**Predicted structures** (PDB/CIF files):
+- Structural comparison — align and score predicted vs. known structures
+- Binding site analysis — identify pockets and interfaces for drug design
+- Visualization — load into PyMOL, ChimeraX, or Mol* for inspection
+
 ## Quick Start
 
 ### 1. Clone & install
