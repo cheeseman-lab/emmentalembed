@@ -43,8 +43,7 @@ class FoldConfig:
     Attributes:
         fasta_path: Path to input FASTA file.
         output_dir: Directory for output PDB files.
-        method: Folding method (chai, af3).
-        weights_path: Path to model weights (required for AF3).
+        method: Folding method (chai, boltz).
         max_seq_len: Maximum sequence length to process.
         num_recycles: Number of recycling iterations.
         checkpoint_interval: Save progress every N proteins.
@@ -55,12 +54,12 @@ class FoldConfig:
     fasta_path: str = ""
     output_dir: str = "pdb_output"
     method: str = "chai"
-    weights_path: str = "weights/af3.bin"
     max_seq_len: int = 1024
     num_recycles: int = 3
     checkpoint_interval: int = 50
     device: str = "cuda"
     use_esm_embeddings: bool = True
+    use_msa_server: bool = False
 
 
 @dataclass

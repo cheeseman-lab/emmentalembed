@@ -7,7 +7,7 @@ name = "emmentalembed"
 version = "0.1.0"
 description = "Protein embedding extraction and structure prediction at scale"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = { text = "MIT" }
 dependencies = [
     "numpy>=1.24.0",
@@ -24,6 +24,8 @@ dependencies = [
     "sentencepiece>=0.2.0",
     "esm>=3.0.0",
     "chai_lab",
+    "boltz>=2.2.0",
+    "cuequivariance-torch",
 ]
 
 [project.optional-dependencies]

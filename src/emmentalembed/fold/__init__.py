@@ -23,11 +23,11 @@ def fold_structures(config: FoldConfig) -> FoldResult:
         from emmentalembed.fold.chai import fold_chai
 
         return fold_chai(config)
-    elif config.method == "af3":
-        from emmentalembed.fold.af3 import fold_af3
+    elif config.method == "boltz":
+        from emmentalembed.fold.boltz import fold_boltz
 
-        return fold_af3(config)
+        return fold_boltz(config)
     else:
         raise ValueError(
-            f"Unknown folding method: {config.method!r}. Supported: 'chai', 'af3'"
+            f"Unknown folding method: {config.method!r}. Supported: 'chai', 'boltz'"
         )

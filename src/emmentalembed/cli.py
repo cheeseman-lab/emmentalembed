@@ -96,22 +96,22 @@ def embed(
 @app.command()
 def fold(
     fasta: Path = typer.Option(..., "--fasta", "-f", help="Path to input FASTA file"),
-    method: str = typer.Option("chai", "--method", "-m", help="Folding method: chai, af3"),
+    method: str = typer.Option("chai", "--method", "-m", help="Folding method: chai, boltz"),
     output_dir: Path = typer.Option(
         "pdb_output", "--output-dir", "-o", help="Output directory for PDB files"
-    ),
-    weights_path: Optional[str] = typer.Option(
-        None, "--weights", "-w", help="Path to model weights (required for AF3)"
     ),
     max_seq_len: int = typer.Option(1024, "--max-seq-len", help="Max sequence length"),
     num_recycles: int = typer.Option(3, "--num-recycles", help="Number of recycling iterations"),
     device: str = typer.Option("cuda", "--device", help="PyTorch device"),
     use_esm: bool = typer.Option(True, "--esm/--no-esm", help="Chai-1: use ESM mode (no MSAs)"),
+    use_msa_server: bool = typer.Option(
+        False, "--msa-server/--no-msa-server", help="Boltz-2: use MSA server"
+    ),
     config: Optional[Path] = typer.Option(
         None, "--config", "-c", help="YAML config file (overrides other flags)"
     ),
 ) -> None:
-    """Predict protein structures using Chai-1 or AlphaFold3."""
+    """Predict protein structures using Chai-1 or Boltz-2."""
     from emmentalembed.fold import fold_structures
 
     if config is not None:
@@ -121,7 +121,6 @@ def fold(
         fasta = Path(cfg.fold.fasta_path) if cfg.fold.fasta_path else fasta
         output_dir = Path(cfg.fold.output_dir) if cfg.fold.output_dir else output_dir
         method = cfg.fold.method
-        weights_path = cfg.fold.weights_path or weights_path
         max_seq_len = cfg.fold.max_seq_len
         num_recycles = cfg.fold.num_recycles
         device = cfg.fold.device
@@ -129,11 +128,6 @@ def fold(
 
     if not fasta.exists():
         rprint(f"[red]Error: FASTA file not found: {fasta}[/red]")
-        raise typer.Exit(1)
-
-    if method == "af3" and not weights_path:
-        rprint("[red]Error: AF3 requires --weights path to model weights.[/red]")
-        rprint("Request weights from DeepMind: https://forms.gle/svvpY4u2jsHEwWYS6")
         raise typer.Exit(1)
 
     rprint(f"[bold]Predicting structures[/bold]")
@@ -147,11 +141,11 @@ def fold(
         fasta_path=str(fasta),
         output_dir=str(output_dir),
         method=method,
-        weights_path=weights_path or "",
         max_seq_len=max_seq_len,
         num_recycles=num_recycles,
         device=device,
         use_esm_embeddings=use_esm,
+        use_msa_server=use_msa_server,
     )
 
     result = fold_structures(fold_config)

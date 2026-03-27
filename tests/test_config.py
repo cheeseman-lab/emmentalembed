@@ -18,7 +18,6 @@ def test_fold_config_defaults():
     """FoldConfig has sensible defaults."""
     cfg = FoldConfig()
     assert cfg.method == "chai"
-    assert cfg.weights_path == "weights/af3.bin"
     assert cfg.max_seq_len == 1024
     assert cfg.num_recycles == 3
     assert cfg.checkpoint_interval == 50
@@ -35,8 +34,7 @@ def test_config_roundtrip(tmp_path):
         ),
         fold=FoldConfig(
             fasta_path="test.fasta",
-            method="af3",
-            weights_path="/path/to/weights.bin",
+            method="boltz",
         ),
     )
     path = tmp_path / "test_config.yaml"
@@ -46,8 +44,7 @@ def test_config_roundtrip(tmp_path):
     assert cfg2.embed.fasta_path == "test.fasta"
     assert cfg2.embed.model == "facebook/esm2_t36_3B_UR50D"
     assert cfg2.embed.batch_size == 16
-    assert cfg2.fold.method == "af3"
-    assert cfg2.fold.weights_path == "/path/to/weights.bin"
+    assert cfg2.fold.method == "boltz"
 
 
 def test_load_config_from_yaml(tmp_config):

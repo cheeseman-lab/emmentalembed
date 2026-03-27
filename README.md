@@ -5,7 +5,7 @@ Protein embedding extraction and structure prediction at scale on the Whitehead 
 ## What it does
 
 1. **PLM Embeddings**: Extract embeddings from any HuggingFace protein language model (ESM-2, ProtT5, ANKH, AMPLIFY, ESM-C, etc.)
-2. **Structure Prediction**: Predict 3D structures using Chai-1 (ESM mode) or AlphaFold3
+2. **Structure Prediction**: Predict 3D structures using Chai-1 or Boltz-2
 
 ## Quick Start
 
@@ -15,7 +15,7 @@ Protein embedding extraction and structure prediction at scale on the Whitehead 
 git clone https://github.com/cheeseman-lab/emmentalembed.git
 cd emmentalembed
 
-conda create -n emmentalembed -c conda-forge python=3.11 uv pip -y
+conda create -n emmentalembed -c conda-forge python=3.12 uv pip -y
 conda activate emmentalembed
 uv pip install -e ".[dev]"   # includes embeddings, folding, and test deps
 ```
@@ -33,16 +33,18 @@ sbatch scripts/embed.sh
 ### 3. Predict structures (optional)
 
 ```bash
-# Chai-1 folding (runs in the main env)
-conda activate emmentalembed
+# Chai-1 (ESM mode — no MSAs needed)
 emmentalembed fold --fasta proteins.fasta --method chai --output-dir pdb/
+
+# Boltz-2 (open-source, MIT licensed)
+emmentalembed fold --fasta proteins.fasta --method boltz --output-dir pdb/
 ```
 
 ## CLI Reference
 
 ```bash
 emmentalembed embed     # Extract PLM embeddings
-emmentalembed fold      # Predict structures (Chai-1 or AF3)
+emmentalembed fold      # Predict structures (Chai-1 or Boltz-2)
 emmentalembed version   # Show versions (package, torch, CUDA)
 ```
 
@@ -67,11 +69,11 @@ emmentalembed embed --config embed_config.yaml
 ### Structure prediction
 
 ```bash
-# Chai-1 (recommended — ESM mode, no MSAs needed)
+# Chai-1 (ESM mode, no MSAs needed)
 emmentalembed fold --fasta input.fasta --method chai --output-dir pdb/
 
-# AlphaFold3 (not yet functional — use Chai-1 instead)
-# emmentalembed fold --fasta input.fasta --method af3 --weights /path/to/af3.bin --output-dir pdb/
+# Boltz-2 (open-source, MIT licensed)
+emmentalembed fold --fasta input.fasta --method boltz --output-dir pdb/
 ```
 
 ## Supported Models
@@ -101,34 +103,16 @@ MODEL=facebook/esm2_t48_15B_UR50D FASTA=my_seqs.fasta sbatch scripts/embed.sh
 # Chai-1 folding on A100
 sbatch scripts/fold_chai.sh
 
-# AF3 folding (weights required)
-WEIGHTS_PATH=/path/to/af3.bin sbatch scripts/fold_af3.sh
+# Boltz-2 folding on A100
+sbatch scripts/fold_boltz.sh
 ```
 
 ## Environment Setup
 
 ```bash
-conda create -n emmentalembed -c conda-forge python=3.11 uv pip -y
+conda create -n emmentalembed -c conda-forge python=3.12 uv pip -y
 conda activate emmentalembed
 uv pip install -e ".[dev]"   # includes embeddings, folding, and test deps
-```
-
-### AlphaFold3 weights
-
-> **Note:** AF3 inference is not yet functional. The wrapper exists but the inference loop is pending implementation. Chai-1 is the recommended folding method.
-
-AF3 weights are not redistributable. To obtain them:
-
-1. Request access via the [AlphaFold3 model parameters form](https://forms.gle/svvpY4u2jsHEwWYS6)
-2. Download the weights file (`af3.bin.zst`)
-3. Place it in the `weights/` directory (or any path you specify via `--weights`)
-
-```bash
-mkdir -p weights
-# After downloading:
-mv ~/Downloads/af3.bin.zst weights/
-# Decompress if needed:
-zstd -d weights/af3.bin.zst -o weights/af3.bin
 ```
 
 ## YAML Config
